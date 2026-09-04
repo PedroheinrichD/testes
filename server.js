@@ -17,7 +17,7 @@ const iceServers = (() => {
 })();
 
 function send(socket, message) { if (socket.readyState === socket.OPEN) socket.send(JSON.stringify(message)); }
-function broadcast(room, message, except) { for (const client of room.values()) if (client !== except) send(client.socket, message); }
+function broadcast(room, message, except) { for (const client of room.values()) if (client.socket !== except) send(client.socket, message); }
 function roomFor(socket) { return socket.roomId ? rooms.get(socket.roomId) : null; }
 function leave(socket) {
   const room = roomFor(socket);
