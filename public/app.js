@@ -4,6 +4,7 @@ const landing = $('#landing');
 const room = $('#room');
 const roomIdFromUrl = location.pathname.startsWith('/room/') ? location.pathname.split('/')[2] : '';
 const screenProfiles = { '720p30': { width: 1280, height: 720, frameRate: 30, bitrate: 2500000, label: '720p · 30 fps' }, '1080p30': { width: 1920, height: 1080, frameRate: 30, bitrate: 4500000, label: '1080p · 30 fps' }, '1080p60': { width: 1920, height: 1080, frameRate: 60, bitrate: 6500000, label: '1080p · 60 fps' } };
+const audioConstraints = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
 
 function showNotice(message) { const notice = $('#notice'); notice.textContent = message; notice.classList.remove('hidden'); }
 function clearNotice() { $('#notice').classList.add('hidden'); }
@@ -34,9 +35,9 @@ async function toggleFullscreen(element) { if (document.fullscreenElement || doc
 
 async function getMedia() {
   if (!navigator.mediaDevices?.getUserMedia) { showNotice('Seu navegador não suporta chamadas WebRTC.'); return new MediaStream(); }
-  try { return await navigator.mediaDevices.getUserMedia({ audio: true, video: true }); }
+  try { return await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: true }); }
   catch (error) {
-    try { showNotice('Câmera indisponível. A chamada seguirá apenas com áudio.'); return await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); }
+    try { showNotice('Câmera indisponível. A chamada seguirá apenas com áudio.'); return await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false }); }
     catch { showNotice('Não foi possível acessar microfone ou câmera. Verifique as permissões do navegador.'); return new MediaStream(); }
   }
 }
@@ -111,6 +112,6 @@ function togglePreviewTrack(kind, button) { const track = kind === 'audio' ? sta
 $('#preview-mic').addEventListener('click', () => togglePreviewTrack('audio', $('#preview-mic')));
 $('#preview-camera').addEventListener('click', () => togglePreviewTrack('video', $('#preview-camera')));
 $('#room-entry-form').addEventListener('submit', event => { event.preventDefault(); const name = $('#entry-name').value.trim(); if (!name) return; sessionStorage.setItem('nexa-name', name); const preview = state.previewStream; state.previewStream = null; startRoom(name, roomIdFromUrl, preview); });
-async function prepareJoinGate() { landing.classList.add('hidden'); room.classList.remove('hidden'); $('#join-gate').classList.remove('hidden'); $('#entry-name').value = sessionStorage.getItem('nexa-name') || ''; if (!navigator.mediaDevices?.getUserMedia) { $('#preview-camera').disabled = true; $('#preview-mic').disabled = true; return; } try { state.previewStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true }); } catch { try { state.previewStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); showNotice('Câmera indisponível. Você pode entrar usando apenas áudio.'); } catch { state.previewStream = new MediaStream(); showNotice('Permissões de mídia não concedidas. Você ainda pode entrar na sala.'); } } const video = $('#preview-video'); if (state.previewStream.getVideoTracks().length) video.srcObject = state.previewStream; else { video.classList.add('hidden'); $('#preview-avatar').classList.remove('hidden'); $('#preview-camera').disabled = true; $('#preview-camera').classList.remove('active'); } if (!state.previewStream.getAudioTracks().length) { $('#preview-mic').disabled = true; $('#preview-mic').classList.remove('active'); } }
+async function prepareJoinGate() { landing.classList.add('hidden'); room.classList.remove('hidden'); $('#join-gate').classList.remove('hidden'); $('#entry-name').value = sessionStorage.getItem('nexa-name') || ''; if (!navigator.mediaDevices?.getUserMedia) { $('#preview-camera').disabled = true; $('#preview-mic').disabled = true; return; } try { state.previewStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: true }); } catch { try { state.previewStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false }); showNotice('Câmera indisponível. Você pode entrar usando apenas áudio.'); } catch { state.previewStream = new MediaStream(); showNotice('Permissões de mídia não concedidas. Você ainda pode entrar na sala.'); } } const video = $('#preview-video'); if (state.previewStream.getVideoTracks().length) video.srcObject = state.previewStream; else { video.classList.add('hidden'); $('#preview-avatar').classList.remove('hidden'); $('#preview-camera').disabled = true; $('#preview-camera').classList.remove('active'); } if (!state.previewStream.getAudioTracks().length) { $('#preview-mic').disabled = true; $('#preview-mic').classList.remove('active'); } }
 if (roomIdFromUrl) prepareJoinGate();
 $('#display-name').addEventListener('input', event => sessionStorage.setItem('nexa-name', event.target.value));
