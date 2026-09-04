@@ -29,7 +29,7 @@ function leave(socket) {
 }
 
 function participantInfo(participant) {
-  return { id: participant.id, name: participant.name, mic: participant.mic, camera: participant.camera, screen: participant.screen };
+  return { id: participant.id, name: participant.name, mic: participant.mic, camera: participant.camera, screen: participant.screen, speaking: participant.speaking };
 }
 
 const server = http.createServer((request, response) => {
@@ -67,7 +67,7 @@ webSocketServer.on('connection', (socket) => {
       if (!room) { room = new Map(); rooms.set(roomId, room); }
       if (room.size >= 8) return send(socket, { type: 'error', message: 'Esta sala já atingiu o limite de 8 pessoas.' });
       socket.roomId = roomId;
-      const participant = { id: socket.id, name: String(message.name || 'Convidado').slice(0, 32), socket, mic: true, camera: true, screen: false };
+      const participant = { id: socket.id, name: String(message.name || 'Convidado').slice(0, 32), socket, mic: true, camera: true, screen: false, speaking: false };
       const peers = [...room.values()].map(participantInfo);
       room.set(socket.id, participant);
       send(socket, { type: 'joined', roomId, peers });
@@ -84,6 +84,7 @@ webSocketServer.on('connection', (socket) => {
       if (typeof message.mic === 'boolean') participant.mic = message.mic;
       if (typeof message.camera === 'boolean') participant.camera = message.camera;
       if (typeof message.screen === 'boolean') participant.screen = message.screen;
+      if (typeof message.speaking === 'boolean') participant.speaking = message.speaking;
       broadcast(room, { type: 'peer-state', peer: participantInfo(participant) }, socket);
     } else if (message.type === 'chat') {
       const author = room.get(socket.id)?.name || 'Convidado';

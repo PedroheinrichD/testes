@@ -1,4 +1,4 @@
-const state = { id: '', name: '', roomId: '', socket: null, localStream: null, previewStream: null, cameraTrack: null, screenTrack: null, screenStream: null, peers: new Map(), iceServers: [], sharing: false };
+const state = { id: '', name: '', roomId: '', socket: null, localStream: null, previewStream: null, cameraTrack: null, screenTrack: null, screenStream: null, peers: new Map(), iceServers: [], sharing: false, audioContext: null, analyser: null, speaking: false, speakingFrame: 0 };
 const $ = (selector) => document.querySelector(selector);
 const landing = $('#landing');
 const room = $('#room');
@@ -9,6 +9,7 @@ const audioConstraints = { echoCancellation: true, noiseSuppression: true, autoG
 function showNotice(message) { const notice = $('#notice'); notice.textContent = message; notice.classList.remove('hidden'); }
 function clearNotice() { $('#notice').classList.add('hidden'); }
 function setConnection(label, kind = '') { $('#connection-label').textContent = label; $('#sidebar-connection').textContent = label; $('#connection-dot').className = `status-dot ${kind}`; $('.voice-status .status-dot').className = `status-dot ${kind}`; }
+function updateCallStageMode() { const hasActiveVideo = [...document.querySelectorAll('#video-grid video')].some(video => video.srcObject?.getVideoTracks().some(track => track.readyState === 'live' && track.enabled)); $('.call-stage')?.classList.toggle('stage-hidden', !hasActiveVideo); }
 function randomRoom() { return crypto.randomUUID().replaceAll('-', '').slice(0, 8); }
 function initials(name) { return (name || '?').trim().slice(0, 1).toUpperCase(); }
 function send(message) { if (state.socket?.readyState === WebSocket.OPEN) state.socket.send(JSON.stringify(message)); }
@@ -16,7 +17,7 @@ function addMessage(message) { const messages = $('#messages'); messages.querySe
 
 function makeTile(id, name, stream, local = false, participant = {}) {
   const tile = document.createElement('article'); tile.className = `video-tile${local ? ' local' : ''}`; tile.id = `tile-${id}`;
-  if (stream) { const video = document.createElement('video'); video.autoplay = true; video.playsInline = true; video.muted = local; video.srcObject = stream; tile.append(video); }
+  if (stream?.getVideoTracks().length) { const video = document.createElement('video'); video.autoplay = true; video.playsInline = true; video.muted = local; video.srcObject = stream; tile.append(video); }
   else { const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.textContent = initials(name); tile.append(avatar); }
   const label = document.createElement('div'); label.className = 'tile-label'; label.textContent = local ? `${name} (você)` : name; tile.append(label);
   const status = document.createElement('div'); status.className = 'tile-status'; tile.append(status); updateTileStatus(tile, participant);
@@ -24,14 +25,32 @@ function makeTile(id, name, stream, local = false, participant = {}) {
     const fullscreen = document.createElement('button'); fullscreen.className = 'media-fullscreen'; fullscreen.type = 'button'; fullscreen.title = 'Abrir transmissão em tela cheia'; fullscreen.setAttribute('aria-label', `Abrir a transmissão de ${name} em tela cheia`); fullscreen.textContent = '⛶'; fullscreen.addEventListener('click', () => toggleFullscreen(tile)); tile.append(fullscreen);
   }
   tile.classList.toggle('screen-share', Boolean(participant.screen));
-  $('#video-grid').append(tile); updateParticipantChip(id, name, participant, local); return tile;
+  $('#video-grid').append(tile); updateParticipantChip(id, name, participant, local); updateCallStageMode(); return tile;
 }
 function updateCount() { const count = $('#video-grid').children.length; $('#participant-count').textContent = `${count} ${count === 1 ? 'pessoa' : 'pessoas'}`; }
 function updateTileStatus(tile, participant) { if (!tile) return; tile.querySelector('.tile-status').textContent = `${participant.mic === false ? 'Mic desligado' : 'Mic ativo'}${participant.camera === false ? ' · Câmera desligada' : ''}${participant.screen ? ' · Compartilhando tela' : ''}`; }
-function updateTile(id, stream, name) { const tile = $(`#tile-${id}`); if (!tile) return; tile.querySelector('.avatar')?.remove(); if (!tile.querySelector('video')) { const video = document.createElement('video'); video.autoplay = true; video.playsInline = true; video.srcObject = stream; tile.prepend(video); } else tile.querySelector('video').srcObject = stream; if (name) tile.querySelector('.tile-label').textContent = name; }
-function updateParticipantChip(id, name, participant = {}, local = false) { const strip = $('#participants-strip'); let chip = $(`#participant-${id}`); if (!chip) { chip = document.createElement('div'); chip.id = `participant-${id}`; chip.className = 'participant-chip'; chip.innerHTML = '<div class="participant-avatar"></div><div class="participant-details"><strong></strong><small></small></div>'; strip.append(chip); } chip.classList.toggle('local', local); chip.querySelector('.participant-avatar').textContent = initials(name); chip.querySelector('strong').textContent = local ? `${name} (você)` : name; chip.querySelector('small').textContent = participant.mic === false ? 'microfone desligado' : participant.screen ? 'compartilhando tela' : 'conectado'; chip.classList.toggle('muted', participant.mic === false); }
+function updateTile(id, stream, name) { const tile = $(`#tile-${id}`); if (!tile) return; if (stream.getVideoTracks().length && !tile.querySelector('video')) { tile.querySelector('.avatar')?.remove(); const video = document.createElement('video'); video.autoplay = true; video.playsInline = true; video.srcObject = stream; tile.prepend(video); } else if (tile.querySelector('video')) tile.querySelector('video').srcObject = stream; if (name) tile.querySelector('.tile-label').textContent = name; updateCallStageMode(); }
+function updateParticipantChip(id, name, participant = {}, local = false) { const strip = $('#participants-strip'); let chip = $(`#participant-${id}`); if (!chip) { chip = document.createElement('div'); chip.id = `participant-${id}`; chip.className = 'participant-chip'; chip.innerHTML = '<div class="participant-avatar"></div><div class="participant-details"><strong></strong><small></small></div><span class="participant-mic" aria-label="Microfone"></span>'; strip.append(chip); } chip.classList.toggle('local', local); chip.querySelector('.participant-avatar').textContent = initials(name); chip.querySelector('strong').textContent = local ? `${name} (você)` : name; chip.querySelector('small').textContent = participant.mic === false ? 'microfone desligado' : participant.screen ? 'compartilhando tela' : 'conectado'; chip.classList.toggle('muted', participant.mic === false); chip.classList.toggle('speaking', participant.speaking === true); }
 function updatePeerState(participant) { const peer = state.peers.get(participant.id); if (peer) Object.assign(peer, participant); const tile = $(`#tile-${participant.id}`); updateTileStatus(tile, participant); tile?.classList.toggle('screen-share', Boolean(participant.screen)); updateParticipantChip(participant.id, participant.name || peer?.name || 'Convidado', participant); }
 async function toggleFullscreen(element) { if (document.fullscreenElement || document.webkitFullscreenElement) { if (document.exitFullscreen) await document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); return; } try { if (element.requestFullscreen) await element.requestFullscreen(); else if (element.webkitRequestFullscreen) element.webkitRequestFullscreen(); else showNotice('Tela cheia não é compatível com este navegador.'); } catch { showNotice('Não foi possível abrir a transmissão em tela cheia.'); } }
+
+function startSpeakingDetection(stream) {
+  const audioTrack = stream.getAudioTracks()[0];
+  if (!audioTrack || !window.AudioContext) return;
+  state.audioContext?.close(); state.audioContext = new AudioContext(); state.analyser = state.audioContext.createAnalyser(); state.analyser.fftSize = 512; state.analyser.smoothingTimeConstant = 0.78;
+  const source = state.audioContext.createMediaStreamSource(new MediaStream([audioTrack])); source.connect(state.analyser);
+  const samples = new Uint8Array(state.analyser.fftSize);
+  const detect = () => {
+    if (!state.analyser) return;
+    state.analyser.getByteTimeDomainData(samples); let total = 0;
+    for (const sample of samples) { const value = (sample - 128) / 128; total += value * value; }
+    const level = Math.sqrt(total / samples.length); const speaking = audioTrack.enabled && level > (state.speaking ? 0.035 : 0.05);
+    if (speaking !== state.speaking) { state.speaking = speaking; updateParticipantChip('local', state.name, { mic: audioTrack.enabled, speaking }, true); send({ type: 'state', speaking }); }
+    state.speakingFrame = requestAnimationFrame(detect);
+  };
+  detect();
+}
+function stopSpeakingDetection() { cancelAnimationFrame(state.speakingFrame); state.speakingFrame = 0; state.audioContext?.close(); state.audioContext = null; state.analyser = null; state.speaking = false; }
 
 async function getMedia() {
   if (!navigator.mediaDevices?.getUserMedia) { showNotice('Seu navegador não suporta chamadas WebRTC.'); return new MediaStream(); }
@@ -81,11 +100,11 @@ async function applySenderQuality(sender, profile) { try { const parameters = se
 async function applyScreenQuality(profile) { if (!state.screenTrack) return; try { await state.screenTrack.applyConstraints({ width: { ideal: profile.width, max: 1920 }, height: { ideal: profile.height, max: 1080 }, frameRate: { ideal: profile.frameRate, max: 60 } }); } catch { /* A captura pode usar a resolução escolhida pelo sistema operacional. */ } for (const peer of state.peers.values()) if (peer.screenSender) await applySenderQuality(peer.screenSender, profile); }
 async function negotiatePeer(peerId, peer) { const offer = await peer.connection.createOffer(); await peer.connection.setLocalDescription(offer); send({ type: 'signal', to: peerId, signal: { description: peer.connection.localDescription } }); }
 async function stopScreen() { if (!state.sharing) return; state.screenTrack?.stop(); state.screenTrack = null; state.screenStream = null; state.sharing = false; $('#screen-preview-video').srcObject = null; $('#screen-preview').classList.add('hidden'); $('#toggle-screen').classList.remove('active'); $('#toggle-screen small').textContent = 'Tela'; const camera = state.cameraTrack || null; for (const peer of state.peers.values()) { const sender = peer.screenSender || peer.connection.getSenders().find(item => item.track?.kind === 'video'); if (sender) await sender.replaceTrack(camera); } send({ type: 'state', screen: false }); }
-function toggleTrack(kind, button, label) { const track = kind === 'audio' ? state.localStream?.getAudioTracks()[0] : state.localStream?.getVideoTracks()[0]; if (!track) { showNotice(`Nenhum dispositivo de ${label.toLowerCase()} foi encontrado.`); return; } track.enabled = !track.enabled; button.classList.toggle('active', track.enabled); button.title = `${track.enabled ? 'Desativar' : 'Ativar'} ${label.toLowerCase()}`; const participant = { mic: kind === 'audio' ? track.enabled : state.localStream?.getAudioTracks()[0]?.enabled !== false, camera: kind === 'video' ? track.enabled : state.localStream?.getVideoTracks()[0]?.enabled !== false }; updateParticipantChip('local', state.name, participant, true); send({ type: 'state', [kind === 'audio' ? 'mic' : 'camera']: track.enabled }); }
+function toggleTrack(kind, button, label) { const track = kind === 'audio' ? state.localStream?.getAudioTracks()[0] : state.localStream?.getVideoTracks()[0]; if (!track) { showNotice(`Nenhum dispositivo de ${label.toLowerCase()} foi encontrado.`); return; } track.enabled = !track.enabled; button.classList.toggle('active', track.enabled); button.classList.toggle('muted', !track.enabled); button.title = `${track.enabled ? 'Desativar' : 'Ativar'} ${label.toLowerCase()}`; const participant = { mic: kind === 'audio' ? track.enabled : state.localStream?.getAudioTracks()[0]?.enabled !== false, camera: kind === 'video' ? track.enabled : state.localStream?.getVideoTracks()[0]?.enabled !== false }; updateParticipantChip('local', state.name, participant, true); updateCallStageMode(); send({ type: 'state', [kind === 'audio' ? 'mic' : 'camera']: track.enabled }); }
 
 async function startRoom(name, id, streamOverride) {
-  state.name = name; state.roomId = id; history.replaceState({}, '', `/room/${id}`); landing.classList.add('hidden'); room.classList.remove('hidden'); $('#join-gate').classList.add('hidden'); $('#room-name').textContent = id; $('#profile-name').textContent = name; $('#profile-avatar').textContent = initials(name); $('#sidebar-voice-name').textContent = name; clearNotice(); setConnection('Conectando...');
-  state.localStream = streamOverride || await getMedia(); state.cameraTrack = state.localStream.getVideoTracks()[0] || null; $('#toggle-camera').classList.toggle('active', Boolean(state.cameraTrack)); makeTile('local', state.name, state.localStream, true, { mic: Boolean(state.localStream.getAudioTracks()[0]), camera: Boolean(state.cameraTrack) }); updateCount();
+  state.name = name; state.roomId = id; history.replaceState({}, '', `/room/${id}`); landing.classList.add('hidden'); room.classList.remove('hidden'); $('#join-gate').classList.add('hidden'); $('#room-name').textContent = 'geral'; $('#profile-name').textContent = name; $('#profile-avatar').textContent = initials(name); $('#sidebar-voice-name').textContent = name; clearNotice(); setConnection('Conectando...');
+  state.localStream = streamOverride || await getMedia(); state.cameraTrack = state.localStream.getVideoTracks()[0] || null; $('#toggle-camera').classList.toggle('active', Boolean(state.cameraTrack)); $('#toggle-camera').classList.toggle('muted', !state.cameraTrack); $('#toggle-mic').classList.toggle('active', Boolean(state.localStream.getAudioTracks()[0])); $('#toggle-mic').classList.toggle('muted', !state.localStream.getAudioTracks()[0]); makeTile('local', state.name, state.localStream, true, { mic: Boolean(state.localStream.getAudioTracks()[0]), camera: Boolean(state.cameraTrack) }); updateCount(); startSpeakingDetection(state.localStream);
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws'; state.socket = new WebSocket(`${protocol}://${location.host}`);
   state.socket.onopen = () => send({ type: 'join', roomId: state.roomId, name: state.name });
   state.socket.onmessage = event => { const message = JSON.parse(event.data); if (message.type === 'welcome') { state.id = message.id; state.iceServers = message.iceServers || []; } if (message.type === 'joined') { setConnection('Conectado', 'online'); send({ type: 'state', mic: Boolean(state.localStream.getAudioTracks()[0]), camera: Boolean(state.cameraTrack) }); message.peers.forEach(peer => createConnection(peer.id, peer.name, true) && updatePeerState(peer)); } if (message.type === 'peer-joined') createConnection(message.peer.id, message.peer.name, false); if (message.type === 'signal') handleSignal(message.from, message.signal); if (message.type === 'peer-state') updatePeerState(message.peer); if (message.type === 'peer-left') removePeer(message.peerId); if (message.type === 'chat') addMessage(message); if (message.type === 'error') { setConnection('Erro', 'error'); showNotice(message.message); } };
@@ -98,6 +117,9 @@ $('#join-form').addEventListener('submit', event => { event.preventDefault(); co
 $('#toggle-mic').addEventListener('click', () => toggleTrack('audio', $('#toggle-mic'), 'Microfone'));
 $('#toggle-camera').addEventListener('click', () => toggleTrack('video', $('#toggle-camera'), 'Câmera'));
 $('#toggle-screen').addEventListener('click', toggleScreen);
+function toggleSidebar(event) { const collapsed = room.classList.toggle('sidebar-collapsed'); document.querySelectorAll('#toggle-sidebar, .sidebar-collapse-button').forEach(button => { button.setAttribute('aria-expanded', String(!collapsed)); button.setAttribute('aria-label', collapsed ? 'Mostrar barra lateral' : 'Minimizar barra lateral'); button.title = collapsed ? 'Mostrar barra lateral' : 'Minimizar barra lateral'; }); }
+$('#toggle-sidebar').addEventListener('click', toggleSidebar);
+$('.sidebar-collapse-button').addEventListener('click', toggleSidebar);
 $('#screen-quality').addEventListener('change', async event => { const profile = screenProfiles[event.target.value]; $('#screen-quality-label').textContent = profile.label; if (state.sharing) await applyScreenQuality(profile); });
 $('#screen-preview-fullscreen').addEventListener('click', () => toggleFullscreen($('#screen-preview')));
 $('#toggle-chat').addEventListener('click', () => $('#chat-panel').classList.add('open'));
@@ -106,9 +128,9 @@ async function copyInvite(button, original) { try { await navigator.clipboard.wr
 $('#copy-link').addEventListener('click', () => copyInvite($('#copy-link'), '⛓'));
 $('#sidebar-copy').addEventListener('click', () => copyInvite($('#sidebar-copy'), '＋ convite'));
 $('#chat-form').addEventListener('submit', event => { event.preventDefault(); const input = $('#chat-input'); const text = input.value.trim(); if (text) { send({ type: 'chat', text }); input.value = ''; } });
-$('#leave').addEventListener('click', () => { send({ type: 'leave' }); state.peers.forEach(peer => peer.connection.close()); state.localStream?.getTracks().forEach(track => track.stop()); location.href = '/'; });
-window.addEventListener('beforeunload', () => { send({ type: 'leave' }); state.localStream?.getTracks().forEach(track => track.stop()); });
-function togglePreviewTrack(kind, button) { const track = kind === 'audio' ? state.previewStream?.getAudioTracks()[0] : state.previewStream?.getVideoTracks()[0]; if (!track) return; track.enabled = !track.enabled; button.classList.toggle('active', track.enabled); }
+$('#leave').addEventListener('click', () => { stopSpeakingDetection(); send({ type: 'leave' }); state.peers.forEach(peer => peer.connection.close()); state.localStream?.getTracks().forEach(track => track.stop()); location.href = '/'; });
+window.addEventListener('beforeunload', () => { stopSpeakingDetection(); send({ type: 'leave' }); state.localStream?.getTracks().forEach(track => track.stop()); });
+function togglePreviewTrack(kind, button) { const track = kind === 'audio' ? state.previewStream?.getAudioTracks()[0] : state.previewStream?.getVideoTracks()[0]; if (!track) return; track.enabled = !track.enabled; button.classList.toggle('active', track.enabled); button.classList.toggle('muted', !track.enabled); }
 $('#preview-mic').addEventListener('click', () => togglePreviewTrack('audio', $('#preview-mic')));
 $('#preview-camera').addEventListener('click', () => togglePreviewTrack('video', $('#preview-camera')));
 $('#room-entry-form').addEventListener('submit', event => { event.preventDefault(); const name = $('#entry-name').value.trim(); if (!name) return; sessionStorage.setItem('nexa-name', name); const preview = state.previewStream; state.previewStream = null; startRoom(name, roomIdFromUrl, preview); });

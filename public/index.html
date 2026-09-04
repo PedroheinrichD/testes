@@ -36,7 +36,7 @@
         <form id="room-entry-form" class="entry-form">
           <label for="entry-name">Seu nome</label>
           <input id="entry-name" maxlength="32" autocomplete="name" placeholder="Como você quer aparecer?" required>
-          <div class="preview-controls"><button id="preview-mic" class="preview-toggle active" type="button">♩ Microfone</button><button id="preview-camera" class="preview-toggle active" type="button">◉ Câmera</button></div>
+          <div class="preview-controls"><button id="preview-mic" class="preview-toggle active" type="button"><span class="control-icon mic-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="12" rx="4"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"></path><path class="icon-slash" d="m4 4 16 16"></path></svg></span>Microfone</button><button id="preview-camera" class="preview-toggle active" type="button"><span class="control-icon camera-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"></rect><path d="m16 10 5-3v10l-5-3z"></path><path class="icon-slash" d="m4 4 16 16"></path></svg></span>Câmera</button></div>
           <button class="primary" type="submit">Entrar na sala <span aria-hidden="true">↗</span></button>
         </form>
       </div>
@@ -48,11 +48,11 @@
         <div class="rail-room active" aria-label="Sala atual">N</div>
       </aside>
       <aside class="room-sidebar" aria-label="Detalhes da sala">
-        <div class="room-sidebar-header"><a class="wordmark" href="/">NEXA</a><button class="sidebar-menu" type="button" aria-label="Opções da sala">•••</button></div>
+        <div class="room-sidebar-header"><a class="wordmark" href="/">NEXA</a><div class="sidebar-header-actions"><button class="sidebar-collapse-button" type="button" title="Minimizar barra lateral" aria-label="Minimizar barra lateral">‹</button><button class="sidebar-menu" type="button" aria-label="Opções da sala">•••</button></div></div>
         <label class="sidebar-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Buscar" aria-label="Buscar na sala"></label>
         <div class="channel-list" aria-label="Canais">
           <div class="channel-category"><span>INFORMAÇÕES</span><span>⌄</span></div>
-          <div class="channel-row muted"><span class="channel-icon">#</span><span>boas-vindas</span></div>
+          <div class="channel-row info-channel"><span class="channel-icon">#</span><span>boas-vindas</span></div>
           <div class="channel-category"><span>CONVERSA</span><span>⌄</span></div>
           <div class="channel-row active"><span class="channel-icon">#</span><span>geral</span></div>
           <div class="channel-category"><span>CANAIS DE VOZ</span><span>⌄</span></div>
@@ -65,21 +65,22 @@
       </aside>
       <div class="room-main">
         <header class="topbar">
-          <div class="room-titlebar"><span class="channel-hash">#</span><h2 id="room-name">Sala</h2><span id="participant-count" class="count">1 pessoa</span></div>
+          <div class="room-titlebar"><button id="toggle-sidebar" class="sidebar-toggle" type="button" title="Minimizar barra lateral" aria-label="Minimizar barra lateral" aria-expanded="true">‹</button><span class="channel-hash">#</span><h2 id="room-name">geral</h2><span id="participant-count" class="count">1 pessoa</span></div>
           <div class="room-meta"><span id="connection-dot" class="status-dot"></span><span id="connection-label">Conectando...</span><button id="copy-link" class="icon-button" title="Copiar link da sala" aria-label="Copiar link da sala">⛓</button></div>
         </header>
         <section class="room-layout">
           <div class="call-column">
+            <div class="call-stage-heading"><div><span class="eyebrow">sala de voz</span><h2>Agora na chamada</h2></div><span class="stage-live"><span class="live-dot"></span> ao vivo</span></div>
             <div id="participants-strip" class="participants-strip" aria-label="Pessoas conectadas"></div>
-            <div id="video-grid" class="video-grid"></div>
+            <div class="call-stage"><div id="video-grid" class="video-grid"></div></div>
             <section id="screen-preview" class="screen-preview hidden" aria-label="Prévia do compartilhamento de tela">
               <div class="screen-preview-header"><span><span class="live-dot"></span> Sua tela compartilhada</span><span id="screen-quality-label">1080p · 60 fps</span><button id="screen-preview-fullscreen" class="media-fullscreen" type="button" title="Abrir prévia em tela cheia" aria-label="Abrir prévia em tela cheia">⛶</button></div>
               <video id="screen-preview-video" autoplay muted playsinline></video>
             </section>
             <div id="notice" class="notice hidden" role="status"></div>
             <div class="controls" aria-label="Controles da chamada">
-              <button id="toggle-mic" class="control active" title="Desativar microfone"><span>♩</span><small>Microfone</small></button>
-              <button id="toggle-camera" class="control active" title="Desativar câmera"><span>◉</span><small>Câmera</small></button>
+              <button id="toggle-mic" class="control active" title="Desativar microfone"><span class="control-icon mic-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="12" rx="4"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"></path><path class="icon-slash" d="m4 4 16 16"></path></svg></span><small>Microfone</small></button>
+              <button id="toggle-camera" class="control active" title="Desativar câmera"><span class="control-icon camera-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"></rect><path d="m16 10 5-3v10l-5-3z"></path><path class="icon-slash" d="m4 4 16 16"></path></svg></span><small>Câmera</small></button>
               <button id="toggle-screen" class="control" title="Compartilhar tela"><span>▣</span><small>Tela</small></button>
               <label class="quality-control" for="screen-quality"><span>Qualidade</span><select id="screen-quality" aria-label="Qualidade do compartilhamento"><option value="720p30">720p · 30 fps</option><option value="1080p30">1080p · 30 fps</option><option value="1080p60" selected>1080p · 60 fps</option></select></label>
               <button id="toggle-chat" class="control" title="Abrir chat"><span>✉</span><small>Chat</small></button>
