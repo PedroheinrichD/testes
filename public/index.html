@@ -48,10 +48,18 @@
         <div class="rail-room active" aria-label="Sala atual">N</div>
       </aside>
       <aside class="room-sidebar" aria-label="Detalhes da sala">
-        <div class="room-sidebar-header"><a class="wordmark" href="/">NEXA</a><span class="sidebar-pulse"></span></div>
-        <div class="sidebar-room-title"><span class="eyebrow">sala privada</span><strong id="sidebar-room-name">Sala</strong></div>
-        <div class="sidebar-section"><span>CHAMADA</span><button id="sidebar-copy" class="sidebar-action" title="Copiar convite">＋ convite</button></div>
-        <div class="voice-status"><span class="status-dot"></span><div><strong id="sidebar-connection">Conectando...</strong><small>áudio e vídeo seguros</small></div></div>
+        <div class="room-sidebar-header"><a class="wordmark" href="/">NEXA</a><button class="sidebar-menu" type="button" aria-label="Opções da sala">•••</button></div>
+        <label class="sidebar-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Buscar" aria-label="Buscar na sala"></label>
+        <div class="channel-list" aria-label="Canais">
+          <div class="channel-category"><span>INFORMAÇÕES</span><span>⌄</span></div>
+          <div class="channel-row muted"><span class="channel-icon">#</span><span>boas-vindas</span></div>
+          <div class="channel-category"><span>CONVERSA</span><span>⌄</span></div>
+          <div class="channel-row active"><span class="channel-icon">#</span><span>geral</span></div>
+          <div class="channel-category"><span>CANAIS DE VOZ</span><span>⌄</span></div>
+          <div class="channel-row voice-active"><span class="channel-icon">◖</span><span>Sala atual</span><span class="channel-live"></span></div>
+          <div class="voice-users"><span class="voice-user"><span class="voice-dot"></span><span id="sidebar-voice-name">Você</span></span></div>
+        </div>
+        <div class="voice-status"><span id="sidebar-connection-dot" class="status-dot"></span><div><strong id="sidebar-connection">Conectando...</strong><small>áudio e vídeo seguros</small></div><button id="sidebar-copy" class="sidebar-action" title="Copiar convite" aria-label="Copiar convite">＋</button></div>
         <div class="sidebar-spacer"></div>
         <div class="profile-strip"><span id="profile-avatar" class="profile-avatar">?</span><div><strong id="profile-name">Convidado</strong><small>na sala agora</small></div></div>
       </aside>
