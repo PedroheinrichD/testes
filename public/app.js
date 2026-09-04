@@ -9,7 +9,8 @@ const audioConstraints = { echoCancellation: true, noiseSuppression: true, autoG
 function showNotice(message) { const notice = $('#notice'); notice.textContent = message; notice.classList.remove('hidden'); }
 function clearNotice() { $('#notice').classList.add('hidden'); }
 function setConnection(label, kind = '') { $('#connection-label').textContent = label; $('#sidebar-connection').textContent = label; $('#connection-dot').className = `status-dot ${kind}`; $('.voice-status .status-dot').className = `status-dot ${kind}`; }
-function updateCallStageMode() { const hasActiveVideo = [...document.querySelectorAll('#video-grid video')].some(video => video.srcObject?.getVideoTracks().some(track => track.readyState === 'live' && track.enabled)); $('.call-stage')?.classList.toggle('stage-hidden', !hasActiveVideo); }
+function hasActiveVideoTrack(stream) { return stream?.getVideoTracks().some(track => track.readyState === 'live' && track.enabled); }
+function updateCallStageMode() { const hasActiveVideo = hasActiveVideoTrack(state.localStream) || [...state.peers.values()].some(peer => hasActiveVideoTrack(peer.stream)); $('.call-stage')?.classList.toggle('stage-hidden', !hasActiveVideo); }
 function randomRoom() { return crypto.randomUUID().replaceAll('-', '').slice(0, 8); }
 function initials(name) { return (name || '?').trim().slice(0, 1).toUpperCase(); }
 function avatarUrl(id, name) { const seed = encodeURIComponent(`${id || 'local'}-${name || 'nexa'}`); return `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=202832&hair=short01,short02,short03&beard=variant01,variant02,variant03`; }
