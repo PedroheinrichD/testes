@@ -34,6 +34,15 @@ function participantInfo(participant) {
 
 const server = http.createServer((request, response) => {
   const requestPath = new URL(request.url, `http://${request.headers.host}`).pathname;
+  if (requestPath === '/styles.css' || requestPath === '/app.js') {
+    const assetPath = path.join(publicDir, requestPath.slice(1));
+    fs.readFile(assetPath, (error, data) => {
+      if (error) { response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); response.end('Asset not found'); return; }
+      response.writeHead(200, { 'Content-Type': mimeTypes[path.extname(assetPath)], 'Cache-Control': 'no-cache, no-store, must-revalidate' });
+      response.end(data);
+    });
+    return;
+  }
   const requestedFile = requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, '');
   const filePath = path.extname(requestedFile) ? path.join(publicDir, requestedFile) : path.join(publicDir, 'index.html');
   if (!filePath.startsWith(publicDir)) { response.writeHead(403); response.end('Forbidden'); return; }
