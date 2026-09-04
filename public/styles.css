@@ -146,10 +146,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 	.landing h1 { margin-top: 18px; font-size: 68px; }
 	.intro { margin-bottom: 32px; font-size: 16px; }
 	.landing-note { margin-top: 40px; }
-	.join-gate { align-items: end; padding: 12px; }
-	.join-gate-card { max-height: calc(100dvh - 24px); overflow-y: auto; padding: 20px; }
+	.join-gate { align-items: center; overflow-y: auto; padding: 10px; }
+	.join-gate-card { width: min(100%, 390px); max-height: calc(100dvh - 20px); overflow-y: auto; padding: 18px; }
 	.join-gate-card h2 { font-size: 23px; }
-	.preview-frame { height: min(42vw, 180px); min-height: 130px; }
+	.join-gate-card p { margin-bottom: 14px; }
+	.preview-frame { height: min(42vw, 170px); min-height: 118px; margin-bottom: 14px; }
+	.preview-toggle { min-width: 0; padding: 9px 6px; font-size: 10px; }
 	.topbar { height: 52px; }
 	.room-titlebar { min-width: 0; gap: 7px; }
 	.room-titlebar h2 { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -388,4 +390,19 @@ body { background: var(--bg); color: var(--text); font-size: 14px; }
 	.call-stage.audio-only .video-grid { min-height: 104px; }
 	.video-grid, .video-tile, .video-tile video, .video-tile:not(.screen-share):only-child, .video-tile:not(.screen-share):only-child video { min-height: 150px; }
 	.call-stage.audio-only .video-tile, .call-stage.audio-only .video-tile .avatar { min-height: 104px; }
+}
+@media (max-width: 360px) {
+	.topbar { padding: 0 8px; }
+	.room-titlebar { gap: 4px; }
+	.room-titlebar h2 { max-width: 30vw; font-size: 13px; }
+	.room-titlebar .count { display: none; }
+	.room-meta #connection-label { display: none; }
+	.call-column { padding-right: 9px; padding-left: 9px; }
+	.call-stage-heading { padding: 0 3px; }
+	.call-stage-heading h2 { font-size: 14px; }
+	.controls { right: 8px; bottom: max(8px, env(safe-area-inset-bottom)); left: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding: 6px; }
+	.control { height: 48px; }
+	.control small { display: block; font-size: 8px; }
+	.control.danger { margin-left: 0; }
+	.quality-control { grid-column: 1 / -1; height: 28px; padding-top: 4px; }
 }
