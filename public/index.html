@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101216">
+  <title>Nexa | Chamada privada</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main id="landing" class="landing">
+    <div class="brand-mark">N</div>
+    <p class="eyebrow">conversas que ficam entre vocês</p>
+    <h1>Nexa</h1>
+    <p class="intro">Crie uma sala privada, compartilhe o link e converse sem complicação.</p>
+    <form id="create-form" class="create-form">
+      <label for="display-name">Como podemos chamar você?</label>
+      <input id="display-name" maxlength="32" autocomplete="name" placeholder="Seu nome" required>
+      <button class="primary" type="submit">Criar sala <span aria-hidden="true">↗</span></button>
+    </form>
+    <div class="join-divider"><span>ou entre em uma sala existente</span></div>
+    <form id="join-form" class="join-form">
+      <input id="room-code" maxlength="48" placeholder="Código da sala" autocomplete="off" aria-label="Código da sala">
+      <button class="secondary" type="submit">Entrar</button>
+    </form>
+    <p class="landing-note">Áudio e vídeo são transmitidos diretamente entre os participantes.</p>
+  </main>
+
+  <main id="room" class="room hidden">
+    <section id="join-gate" class="join-gate hidden" aria-labelledby="join-gate-title">
+      <div class="join-gate-card">
+        <span class="eyebrow">convite para sala</span>
+        <h2 id="join-gate-title">Entre na conversa</h2>
+        <p>Confira seu áudio e vídeo antes de entrar.</p>
+        <div class="preview-frame"><video id="preview-video" autoplay muted playsinline></video><span id="preview-avatar" class="avatar hidden">N</span></div>
+        <form id="room-entry-form" class="entry-form">
+          <label for="entry-name">Seu nome</label>
+          <input id="entry-name" maxlength="32" autocomplete="name" placeholder="Como você quer aparecer?" required>
+          <div class="preview-controls"><button id="preview-mic" class="preview-toggle active" type="button">♩ Microfone</button><button id="preview-camera" class="preview-toggle active" type="button">◉ Câmera</button></div>
+          <button class="primary" type="submit">Entrar na sala <span aria-hidden="true">↗</span></button>
+        </form>
+      </div>
+    </section>
+    <div class="workspace">
+      <aside class="server-rail" aria-label="Navegação Nexa">
+        <a class="rail-mark" href="/" aria-label="Voltar para o início">N</a>
+        <span class="rail-rule"></span>
+        <div class="rail-room active" aria-label="Sala atual">N</div>
+      </aside>
+      <aside class="room-sidebar" aria-label="Detalhes da sala">
+        <div class="room-sidebar-header"><a class="wordmark" href="/">NEXA</a><span class="sidebar-pulse"></span></div>
+        <div class="sidebar-room-title"><span class="eyebrow">sala privada</span><strong id="sidebar-room-name">Sala</strong></div>
+        <div class="sidebar-section"><span>CHAMADA</span><button id="sidebar-copy" class="sidebar-action" title="Copiar convite">＋ convite</button></div>
+        <div class="voice-status"><span class="status-dot"></span><div><strong id="sidebar-connection">Conectando...</strong><small>áudio e vídeo seguros</small></div></div>
+        <div class="sidebar-spacer"></div>
+        <div class="profile-strip"><span id="profile-avatar" class="profile-avatar">?</span><div><strong id="profile-name">Convidado</strong><small>na sala agora</small></div></div>
+      </aside>
+      <div class="room-main">
+        <header class="topbar">
+          <div class="room-titlebar"><span class="channel-hash">#</span><h2 id="room-name">Sala</h2><span id="participant-count" class="count">1 pessoa</span></div>
+          <div class="room-meta"><span id="connection-dot" class="status-dot"></span><span id="connection-label">Conectando...</span><button id="copy-link" class="icon-button" title="Copiar link da sala" aria-label="Copiar link da sala">⛓</button></div>
+        </header>
+        <section class="room-layout">
+          <div class="call-column">
+            <div id="participants-strip" class="participants-strip" aria-label="Pessoas conectadas"></div>
+            <div id="video-grid" class="video-grid"></div>
+            <section id="screen-preview" class="screen-preview hidden" aria-label="Prévia do compartilhamento de tela">
+              <div class="screen-preview-header"><span><span class="live-dot"></span> Sua tela compartilhada</span><span id="screen-quality-label">1080p · 60 fps</span><button id="screen-preview-fullscreen" class="media-fullscreen" type="button" title="Abrir prévia em tela cheia" aria-label="Abrir prévia em tela cheia">⛶</button></div>
+              <video id="screen-preview-video" autoplay muted playsinline></video>
+            </section>
+            <div id="notice" class="notice hidden" role="status"></div>
+            <div class="controls" aria-label="Controles da chamada">
+              <button id="toggle-mic" class="control active" title="Desativar microfone"><span>♩</span><small>Microfone</small></button>
+              <button id="toggle-camera" class="control active" title="Desativar câmera"><span>◉</span><small>Câmera</small></button>
+              <button id="toggle-screen" class="control" title="Compartilhar tela"><span>▣</span><small>Tela</small></button>
+              <label class="quality-control" for="screen-quality"><span>Qualidade</span><select id="screen-quality" aria-label="Qualidade do compartilhamento"><option value="720p30">720p · 30 fps</option><option value="1080p30">1080p · 30 fps</option><option value="1080p60" selected>1080p · 60 fps</option></select></label>
+              <button id="toggle-chat" class="control" title="Abrir chat"><span>✉</span><small>Chat</small></button>
+              <button id="leave" class="control danger" title="Sair da chamada"><span>×</span><small>Sair</small></button>
+            </div>
+          </div>
+          <aside id="chat-panel" class="chat-panel" aria-label="Chat da sala">
+            <div class="chat-header"><div><span class="eyebrow">conversa</span><h3>Chat da sala</h3></div><button id="close-chat" class="close-button" aria-label="Fechar chat">×</button></div>
+            <div id="messages" class="messages"><p class="empty-chat">As mensagens aparecem aqui para todos na sala.</p></div>
+            <form id="chat-form" class="chat-form"><input id="chat-input" maxlength="1000" placeholder="Escreva uma mensagem..." autocomplete="off"><button type="submit" title="Enviar mensagem" aria-label="Enviar mensagem">↗</button></form>
+          </aside>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: nexa
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ICE_SERVERS_JSON
+        sync: false
