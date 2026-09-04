@@ -230,7 +230,9 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .participants-strip { justify-content: flex-start; min-height: 66px; margin-bottom: 12px; overflow-x: auto; }
 .participant-chip { min-width: 150px; border-radius: 7px; border-color: #303744; background: #212630; box-shadow: none; }
 .participant-chip.local { border-color: #67442b; background: #2b241e; }
-.participant-avatar { width: 38px; height: 38px; flex-basis: 38px; border-width: 1px; background: #f28c3b; font-size: 14px; }
+.participant-avatar { position: relative; width: 38px; height: 38px; flex-basis: 38px; overflow: hidden; border-width: 1px; background: #f28c3b; font-size: 14px; }
+.participant-avatar img, .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.participant-avatar > span { display: none; }
 .video-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
 .video-tile { display: block; min-height: 260px; border-color: #333a46; border-radius: 7px; background: #101319; }
 .video-tile video { min-height: 260px; }
