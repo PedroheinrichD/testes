@@ -159,4 +159,9 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 	.chat-panel { max-height: 82dvh; min-height: 60dvh; padding: 16px 14px; }
 	.chat-form input { padding: 12px; }
 }
+@media (max-width: 600px) {
+	.room-layout { min-height: calc(100dvh - 52px); }
+	.call-column { min-height: calc(100dvh - 52px); }
+	.controls { position: fixed; z-index: 4; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; box-shadow: 0 8px 28px #0006; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
