@@ -140,7 +140,6 @@ async function copyInvite(button, original) { try { await navigator.clipboard.wr
 $('#copy-link').addEventListener('click', () => copyInvite($('#copy-link'), '⛓'));
 $('#sidebar-copy').addEventListener('click', () => copyInvite($('#sidebar-copy'), '＋ convite'));
 $('#chat-form').addEventListener('submit', event => { event.preventDefault(); const input = $('#chat-input'); const text = input.value.trim(); if (text) { send({ type: 'chat', text }); input.value = ''; } });
-$('#leave').addEventListener('click', () => { stopSpeakingDetection(); send({ type: 'leave' }); state.peers.forEach(peer => peer.connection.close()); state.localStream?.getTracks().forEach(track => track.stop()); location.href = '/'; });
 window.addEventListener('beforeunload', () => { stopSpeakingDetection(); send({ type: 'leave' }); state.localStream?.getTracks().forEach(track => track.stop()); });
 window.addEventListener('pointerdown', resumeRemoteAudio, { passive: true });
 function togglePreviewTrack(kind, button) { const track = kind === 'audio' ? state.previewStream?.getAudioTracks()[0] : state.previewStream?.getVideoTracks()[0]; if (!track) return; track.enabled = !track.enabled; button.classList.toggle('active', track.enabled); button.classList.toggle('muted', !track.enabled); }
