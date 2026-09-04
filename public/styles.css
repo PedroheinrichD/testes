@@ -353,6 +353,8 @@ body { background: var(--bg); color: var(--text); font-size: 14px; }
 .call-stage.audio-only .video-tile .avatar { position: absolute; font-size: 38px; }
 .video-tile:not(.screen-share):only-child, .video-tile:not(.screen-share):only-child video { min-height: 238px; }
 .video-tile .avatar { color: var(--accent); font-size: 52px; }
+.camera-switcher { position: absolute; z-index: 2; top: 12px; right: 12px; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #ffffff1c; border-radius: 7px; color: #edf3ee; background: #0b1016cc; font-size: 21px; line-height: 1; opacity: .85; transition: color .16s ease, border-color .16s ease, background .16s ease, transform .16s ease; }
+.camera-switcher:hover, .camera-switcher:focus-visible { border-color: #7b9b62; color: var(--accent); background: #182219e8; transform: rotate(45deg); }
 .tile-label { bottom: 12px; left: 12px; border: 1px solid #ffffff12; border-radius: 5px; background: #0a0e13db; }
 .tile-status { right: 12px; bottom: 13px; color: #8e9aaa; }
 .notice { max-width: 960px; margin: 12px auto; border-color: #4e3b34; border-radius: 6px; background: #28201e; color: #f1b09b; }
