@@ -17,6 +17,8 @@ button { cursor: pointer; }
 .preview-controls { display: flex; gap: 8px; margin: 4px 0 6px; }
 .preview-toggle { flex: 1; border: 1px solid #3a3d44; border-radius: 4px; padding: 10px; background: #2b2e34; color: var(--text); font-size: 12px; }
 .preview-toggle.active { border-color: var(--accent); color: var(--accent); }
+.camera-switch { color: #a7b0bc; }
+.camera-switch:hover { color: var(--accent); }
 .control-icon { display: inline-grid; place-items: center; width: 20px; height: 20px; color: #a5adba; }
 .control-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .control.active > span:first-child { color: #3ecf8e; }
